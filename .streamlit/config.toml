@@ -1,5 +1,13 @@
-[general]
-name = "Thesis Writing Agent"
+[theme]
+primaryColor = "#667eea"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f0f2ff"
+textColor = "#262730"
+font = "sans serif"
 
 [server]
 headless = true
+port = 8501
+
+[browser]
+gatherUsageStats = false
