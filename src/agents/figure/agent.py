@@ -68,9 +68,22 @@ def add_panel_label(ax, label: str, x: float = -0.06, y: float = 1.02,
 def apply_publication_style(font_size: int = 12, axes_linewidth: float = 0.8, use_tex: bool = False):
     """Apply Nature-style rcParams. Call once before creating any figures."""
     import matplotlib.pyplot as plt
-    # MANDATORY: editable SVG text
+    import matplotlib.font_manager as fm
+
+    # Detect available Chinese fonts on the system
+    chinese_fonts = []
+    for font_name in ['Microsoft YaHei', 'SimHei', 'SimSun', 'Source Han Sans SC',
+                      'Noto Sans CJK SC', 'WenQuanYi Micro Hei', 'PingFang SC']:
+        try:
+            fm.findfont(font_name, fallback_to_default=False)
+            chinese_fonts.append(font_name)
+        except Exception:
+            continue
+
+    sans_families = chinese_fonts + ['Arial', 'DejaVu Sans', 'Liberation Sans']
     plt.rcParams['font.family'] = 'sans-serif'
-    plt.rcParams['font.sans-serif'] = ['Arial', 'DejaVu Sans', 'Liberation Sans']
+    plt.rcParams['font.sans-serif'] = sans_families
+    plt.rcParams['axes.unicode_minus'] = False
     plt.rcParams['svg.fonttype'] = 'none'
     # Layout & style
     plt.rcParams['font.size'] = font_size
