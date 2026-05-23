@@ -5,6 +5,8 @@ Thesis Writing Agent - CLI Entry Point
     python -m src.main                    # 交互模式，自动选择可用模型
     python -m src.main --model gpt-4o     # 指定模型
     python -m src.main --model deepseek-chat --api-key sk-xxx  # 指定模型和Key
+    python -m src.main --mode enhanced    # 增强模式 (质量评估+迭代)
+    python -m src.main --mode basic       # 基础模式 (默认)
 """
 
 import os
@@ -59,6 +61,8 @@ Examples:
     parser.add_argument('--api-key', '-k', help='指定API Key')
     parser.add_argument('--list-models', '-l', action='store_true', help='列出所有可用模型')
     parser.add_argument('--topic', '-t', help='直接指定论文主题（非交互模式）')
+    parser.add_argument('--mode', choices=['basic', 'enhanced'], default='basic',
+                        help='运行模式: basic=基础(快速生成), enhanced=增强(质量评估+迭代)')
 
     args = parser.parse_args()
 
@@ -110,7 +114,8 @@ Examples:
     print("  - 基于深度学习的图像去雾算法研究")
     print("  - 面向智能交通系统的路径规划优化")
     print("  - 基于注意力机制的自然语言处理模型研究")
-    print("\n输入 'exit' 退出程序")
+    print(f"\n当前模式: {'基础 (快速生成)' if args.mode == 'basic' else '增强 (质量评估+迭代)'}")
+    print("输入 'exit' 退出程序")
     print("-" * 60)
 
     while True:
@@ -126,22 +131,52 @@ Examples:
 
         print("\n正在启动工作流...\n")
 
-        result = app.invoke({
-            "messages": [HumanMessage(content=topic)],
-            "current_task": "research",
-            "research_results": "",
-            "code_results": "",
-            "thesis_content": "",
-            "feedback": ""
-        })
+        if args.mode == "basic":
+            app = create_thesis_workflow(llm)
+            result = app.invoke({
+                "messages": [HumanMessage(content=topic)],
+                "current_task": "research",
+                "research_results": "",
+                "code_results": "",
+                "thesis_content": "",
+                "feedback": ""
+            })
+            thesis = result.get("thesis_content", "")
+        else:
+            import asyncio
+            from src.workflows.enhanced_pipeline import EnhancedResearchPipeline
+
+            async def run_pipeline():
+                pipeline = EnhancedResearchPipeline(llm)
+                return await pipeline.run(topic, max_iterations=3, enable_comparison=True)
+
+            result = asyncio.run(run_pipeline())
+            thesis = result.get("thesis", "")
+
+            # Print evaluation summary
+            if result.get("evaluation_report"):
+                report = result["evaluation_report"]
+                print("\n" + "=" * 60)
+                print("质量评估报告")
+                print("=" * 60)
+                print(f"综合评分: {result.get('quality_score', 0):.1f}/10")
+                print(f"AIGC率: {result.get('aigc_score', 0):.1f}%")
+                print(f"数据真实性: {result.get('data_authenticity', 0):.1f}%")
+                print(f"通过状态: {'✅ 通过' if result.get('is_pass') else '❌ 未通过'}")
+                print(f"迭代次数: {result.get('iterations', 0)}")
+                print(f"运行时间: {result.get('duration_seconds', 0):.1f}秒")
+                if result.get("docx_path"):
+                    print(f"Word文档: {result['docx_path']}")
+                if result.get("pdf_path"):
+                    print(f"PDF文档: {result['pdf_path']}")
+                print("=" * 60)
 
         print("\n" + "=" * 60)
         print("工作流执行完成")
         print("=" * 60)
 
-        if result.get("thesis_content"):
+        if thesis:
             print("\n生成的论文内容:")
-            thesis = result["thesis_content"]
             print(thesis[:2000] + "..." if len(thesis) > 2000 else thesis)
 
 

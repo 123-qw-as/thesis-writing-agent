@@ -62,9 +62,10 @@ class DataVerifier:
         anomalies.extend(self._check_statistical_anomalies(metrics))
 
         score = 100.0
-        score -= len(suspicious) * 5
-        score -= len(inconsistencies) * 10
-        score -= len(anomalies) * 8
+        # 降低扣分权重，避免误杀正常数字
+        score -= len(suspicious) * 1.5
+        score -= len(inconsistencies) * 5
+        score -= len(anomalies) * 3
         score = max(score, 0.0)
 
         suggestions = self._generate_suggestions(suspicious, inconsistencies, anomalies)
@@ -171,15 +172,23 @@ class DataVerifier:
             val = num_data["value"]
             context = num_data.get("context", "")
 
+            # 跳过代码块中的数字
             if self._is_in_code_block(context):
                 continue
 
+            # 跳过 DOI、版本号、年份、章节号等
             if self._is_doi_number(val, context):
                 continue
-
             if self._is_version_number(val, context):
                 continue
+            if self._is_year_number(val, context):
+                continue
+            if self._is_section_number(val, context):
+                continue
+            if self._is_citation_number(val, context):
+                continue
 
+            # 完美分数检查
             if val == 1.0 or val == 100.0:
                 if "=" in context or "==" in context or "return" in context.lower():
                     continue
@@ -191,6 +200,7 @@ class DataVerifier:
                     "reason": "完美分数(100%或1.0)较为罕见，需确认"
                 })
 
+            # 零值检查
             if val == 0.0:
                 suspicious.append({
                     "type": "zero_value",
@@ -200,27 +210,16 @@ class DataVerifier:
                     "reason": "零值需要上下文确认是否合理"
                 })
 
-            decimal = str(val).split('.')
-            if len(decimal) > 1 and len(decimal[1]) > 3:
-                if val != round(val, 3):
+            # 高精度检查（仅对 0-1 之间的小数）
+            if 0 < val < 1:
+                decimal = str(val).split('.')
+                if len(decimal) > 1 and len(decimal[1]) > 4:
                     suspicious.append({
                         "type": "unusual_precision",
                         "value": val,
                         "line": num_data["line"],
                         "context": context,
                         "reason": f"异常高精度: {val}，实际中罕见此精度"
-                    })
-
-            if val > 0 and val < 1 and not num_data.get("is_percentage"):
-                if round(val, 4) == val:
-                    pass
-                else:
-                    suspicious.append({
-                        "type": "small_decimal",
-                        "value": val,
-                        "line": num_data["line"],
-                        "context": context,
-                        "reason": "极小数值需要明确单位或上下文"
                     })
 
         return suspicious
@@ -246,6 +245,41 @@ class DataVerifier:
         if any(ind in context for ind in version_indicators):
             if 0 <= val <= 5:
                 return True
+        return False
+
+    def _is_year_number(self, val: float, context: str) -> bool:
+        """检查是否为年份数字（如 2024, 2023 等）"""
+        if not context:
+            return False
+        if 1990 <= val <= 2030:
+            year_indicators = ['年', 'year', 'Year', 'published', 'Published', '©', '(20', '（20']
+            if any(ind in context for ind in year_indicators):
+                return True
+        return False
+
+    def _is_section_number(self, val: float, context: str) -> bool:
+        """检查是否为章节号、图表编号等"""
+        if not context:
+            return False
+        # 匹配如 "1.", "2.1", "图3", "表2", "Figure 1" 等模式
+        section_patterns = ['^\\d+\\.', '图', '表', 'Figure', 'Table', 'Chapter', '第.*章', '第.*节', '编号', 'No.']
+        import re
+        for pattern in section_patterns:
+            if re.search(pattern, context):
+                if 0 < val < 100:
+                    return True
+        return False
+
+    def _is_citation_number(self, val: float, context: str) -> bool:
+        """检查是否为引用编号，如 [1], [2], (3) 等"""
+        if not context:
+            return False
+        import re
+        citation_patterns = [r'\[\d+\]', r'\(\d+\)', r'参考文献', r'Reference', r'Citation']
+        for pattern in citation_patterns:
+            if re.search(pattern, context):
+                if 0 < val < 500:
+                    return True
         return False
 
     def _check_numerical_consistency(

@@ -2,14 +2,14 @@
 LLM Provider Configuration - 多模型支持配置
 
 支持的提供商:
-- OpenAI (GPT-4o, GPT-4o-mini, o1, o3-mini)
-- DeepSeek (deepseek-chat, deepseek-reasoner)
-- Claude (Sonnet 4, Opus 4, Haiku 3.5)
-- Qwen 通义千问 (qwen-max, qwen-plus, qwen-turbo)
-- Kimi 月之暗面 (moonshot-v1-8k/32k/128k)
-- GLM 智谱 (glm-4, glm-4-plus, glm-4-flash)
-- Baichuan 百川 (baichuan4)
-- MiniMax (MiniMax-M2.7, abab6.5s-chat)
+- OpenAI (GPT-5.5, GPT-5.4, GPT-5.4-mini, GPT-Image-2, GPT-Realtime-2)
+- Anthropic (Claude Opus 4.7, Sonnet 4.6, Haiku 4.5)
+- DeepSeek (V4-Pro, V4-Flash)
+- Qwen 通义千问 (Qwen3.6-Max-Preview, Qwen3.6-Plus, Qwen3.6-Flash)
+- Kimi 月之暗面 (Kimi K2.6, Kimi K2, moonshot-v1)
+- GLM 智谱 (GLM-5.1, GLM-5, GLM-5-Turbo, GLM-4.7)
+- Baichuan 百川 (Baichuan4-Turbo, Baichuan4-Air, Baichuan4)
+- MiniMax (MiniMax-M2.7, MiniMax-M2.7-highspeed, MiniMax-M2.5)
 
 用法:
     from src.llm_config import create_llm, MODEL_REGISTRY, get_models_by_provider
@@ -51,8 +51,40 @@ class ModelConfig:
 
 MODEL_REGISTRY: Dict[str, ModelConfig] = {
     # ═══════════════════════════════════════════
-    # OpenAI
+    # OpenAI (来源: openai.com/api/pricing/)
     # ═══════════════════════════════════════════
+    "gpt-5.5": ModelConfig(
+        name="GPT-5.5",
+        model_id="gpt-5.5",
+        provider="openai",
+        api_key_env="OPENAI_API_KEY",
+        max_tokens=32_768,
+        context_window=1_048_576,
+        description="OpenAI 2026年4月旗舰模型，编程/知识工作/研究全面升级，效率优于GPT-5.4",
+        price_info="输入 $5.00/M, 输出 $30.00/M",
+        is_recommended=True,
+    ),
+    "gpt-5.4": ModelConfig(
+        name="GPT-5.4",
+        model_id="gpt-5.4",
+        provider="openai",
+        api_key_env="OPENAI_API_KEY",
+        max_tokens=32_768,
+        context_window=1_048_576,
+        description="编程与专业工作高性价比模型",
+        price_info="输入 $2.50/M, 输出 $15.00/M",
+    ),
+    "gpt-5.4-mini": ModelConfig(
+        name="GPT-5.4 Mini",
+        model_id="gpt-5.4-mini",
+        provider="openai",
+        api_key_env="OPENAI_API_KEY",
+        max_tokens=16_384,
+        context_window=200_000,
+        description="最强Mini模型，编程/Computer Use/Subagent优化",
+        price_info="输入 $0.75/M, 输出 $4.50/M",
+        is_recommended=True,
+    ),
     "gpt-4o": ModelConfig(
         name="GPT-4o",
         model_id="gpt-4o",
@@ -60,9 +92,8 @@ MODEL_REGISTRY: Dict[str, ModelConfig] = {
         api_key_env="OPENAI_API_KEY",
         max_tokens=4096,
         context_window=128_000,
-        description="OpenAI最新旗舰模型，支持多模态，综合能力最强",
+        description="OpenAI多模态模型，支持图像/音频/文本",
         price_info="输入 $2.50/M, 输出 $10/M",
-        is_recommended=True,
     ),
     "gpt-4o-mini": ModelConfig(
         name="GPT-4o Mini",
@@ -71,18 +102,8 @@ MODEL_REGISTRY: Dict[str, ModelConfig] = {
         api_key_env="OPENAI_API_KEY",
         max_tokens=4096,
         context_window=128_000,
-        description="GPT-4o的轻量版，性价比高，适合日常任务",
+        description="GPT-4o轻量版，性价比高",
         price_info="输入 $0.15/M, 输出 $0.60/M",
-    ),
-    "gpt-4-turbo": ModelConfig(
-        name="GPT-4 Turbo",
-        model_id="gpt-4-turbo",
-        provider="openai",
-        api_key_env="OPENAI_API_KEY",
-        max_tokens=4096,
-        context_window=128_000,
-        description="GPT-4的升级版，速度更快",
-        price_info="输入 $10/M, 输出 $30/M",
     ),
     "o1": ModelConfig(
         name="o1",
@@ -94,91 +115,139 @@ MODEL_REGISTRY: Dict[str, ModelConfig] = {
         description="OpenAI推理模型，适合复杂逻辑和数学推理",
         price_info="输入 $15/M, 输出 $60/M",
     ),
-    "o3-mini": ModelConfig(
-        name="o3-mini",
-        model_id="o3-mini",
-        provider="openai",
-        api_key_env="OPENAI_API_KEY",
-        max_tokens=8192,
-        context_window=200_000,
-        description="OpenAI轻量级推理模型，性价比高",
-        price_info="输入 $1.10/M, 输出 $4.40/M",
-    ),
 
     # ═══════════════════════════════════════════
-    # Anthropic Claude
+    # Anthropic Claude (来源: anthropic.com)
     # ═══════════════════════════════════════════
-    "claude-sonnet-4-20250514": ModelConfig(
-        name="Claude Sonnet 4",
-        model_id="claude-sonnet-4-20250514",
+    "claude-opus-4-7": ModelConfig(
+        name="Claude Opus 4.7",
+        model_id="claude-opus-4-7",
         provider="anthropic",
         api_key_env="ANTHROPIC_API_KEY",
         max_tokens=8192,
-        context_window=200_000,
-        description="Claude最新Sonnet模型，平衡性能与速度",
+        context_window=1_000_000,
+        description="Anthropic 2026年4月旗舰，Agentic Coding/复杂推理/视觉全面升级，1M上下文",
+        price_info="输入 $5/M, 输出 $25/M",
+        is_recommended=True,
+    ),
+    "claude-sonnet-4-6": ModelConfig(
+        name="Claude Sonnet 4.6",
+        model_id="claude-sonnet-4-6",
+        provider="anthropic",
+        api_key_env="ANTHROPIC_API_KEY",
+        max_tokens=8192,
+        context_window=1_000_000,
+        description="生产环境首选，编程/Agent/长上下文全面优化，性价比之王",
         price_info="输入 $3/M, 输出 $15/M",
         is_recommended=True,
     ),
-    "claude-opus-4-20250414": ModelConfig(
-        name="Claude Opus 4",
-        model_id="claude-opus-4-20250414",
-        provider="anthropic",
-        api_key_env="ANTHROPIC_API_KEY",
-        max_tokens=8192,
-        context_window=200_000,
-        description="Claude最强模型，适合复杂推理和长文档",
-        price_info="输入 $15/M, 输出 $75/M",
-    ),
-    "claude-3-5-haiku-20241022": ModelConfig(
-        name="Claude Haiku 3.5",
-        model_id="claude-3-5-haiku-20241022",
+    "claude-haiku-4-5": ModelConfig(
+        name="Claude Haiku 4.5",
+        model_id="claude-haiku-4-5",
         provider="anthropic",
         api_key_env="ANTHROPIC_API_KEY",
         max_tokens=4096,
         context_window=200_000,
-        description="Claude轻量模型，速度快，成本低",
-        price_info="输入 $0.80/M, 输出 $4/M",
+        description="最快最便宜的Claude，编码接近Sonnet 4，速度极快",
+        price_info="输入 $1/M, 输出 $5/M",
     ),
 
     # ═══════════════════════════════════════════
-    # DeepSeek
+    # DeepSeek (来源: platform.deepseek.com)
     # ═══════════════════════════════════════════
+    "deepseek-v4-pro": ModelConfig(
+        name="DeepSeek V4 Pro",
+        model_id="deepseek-v4-pro",
+        provider="deepseek",
+        api_key_env="DEEPSEEK_API_KEY",
+        base_url="https://api.deepseek.com",
+        max_tokens=8192,
+        context_window=128_000,
+        description="DeepSeek最新Pro模型，支持思考模式，适合复杂任务",
+        price_info="按量计费",
+        is_recommended=True,
+    ),
+    "deepseek-v4-flash": ModelConfig(
+        name="DeepSeek V4 Flash",
+        model_id="deepseek-v4-flash",
+        provider="deepseek",
+        api_key_env="DEEPSEEK_API_KEY",
+        base_url="https://api.deepseek.com",
+        max_tokens=8192,
+        context_window=128_000,
+        description="DeepSeek最新Flash模型，速度快，性价比高",
+        price_info="按量计费",
+    ),
     "deepseek-chat": ModelConfig(
-        name="DeepSeek V3",
+        name="DeepSeek Chat (V3)",
         model_id="deepseek-chat",
         provider="deepseek",
         api_key_env="DEEPSEEK_API_KEY",
-        base_url="https://api.deepseek.com/v1",
+        base_url="https://api.deepseek.com",
         max_tokens=8192,
         context_window=64_000,
-        description="DeepSeek最新V3模型，中文能力强，性价比高",
+        description="DeepSeek V3非思考模式，2026/07/24将弃用，建议迁移至V4-Flash",
         price_info="输入 ¥1/M, 输出 ¥5/M",
-        is_recommended=True,
     ),
     "deepseek-reasoner": ModelConfig(
-        name="DeepSeek R1",
+        name="DeepSeek Reasoner (R1)",
         model_id="deepseek-reasoner",
         provider="deepseek",
         api_key_env="DEEPSEEK_API_KEY",
-        base_url="https://api.deepseek.com/v1",
+        base_url="https://api.deepseek.com",
         max_tokens=8192,
         context_window=64_000,
-        description="DeepSeek推理模型，适合复杂逻辑推理",
+        description="DeepSeek R1思考模式，2026/07/24将弃用，建议迁移至V4-Pro",
         price_info="输入 ¥4/M, 输出 ¥16/M",
     ),
 
     # ═══════════════════════════════════════════
-    # Qwen 通义千问
+    # Qwen 通义千问 (来源: help.aliyun.com/zh/model-studio/models)
     # ═══════════════════════════════════════════
-    "qwen-max": ModelConfig(
-        name="Qwen Max",
-        model_id="qwen-max",
+    "qwen3.6-max-preview": ModelConfig(
+        name="Qwen3.6-Max-Preview",
+        model_id="qwen3.6-max-preview",
         provider="qwen",
         api_key_env="DASHSCOPE_API_KEY",
         base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
         max_tokens=8192,
-        context_window=32_768,
-        description="通义千问最强模型，中文能力优秀",
+        context_window=262_144,
+        description="通义千问最新最强模型，预览版",
+        price_info="输入 ¥40/M, 输出 ¥120/M",
+        is_recommended=True,
+    ),
+    "qwen3.6-plus": ModelConfig(
+        name="Qwen3.6-Plus",
+        model_id="qwen3.6-plus",
+        provider="qwen",
+        api_key_env="DASHSCOPE_API_KEY",
+        base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+        max_tokens=8192,
+        context_window=131_072,
+        description="通义千问3.6平衡版，性价比极高",
+        price_info="输入 ¥4/M, 输出 ¥12/M",
+        is_recommended=True,
+    ),
+    "qwen3.6-flash": ModelConfig(
+        name="Qwen3.6-Flash",
+        model_id="qwen3.6-flash",
+        provider="qwen",
+        api_key_env="DASHSCOPE_API_KEY",
+        base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+        max_tokens=8192,
+        context_window=131_072,
+        description="通义千问3.6轻量版，速度快，成本低",
+        price_info="输入 ¥0.3/M, 输出 ¥1.2/M",
+    ),
+    "qwen3-max": ModelConfig(
+        name="Qwen3-Max",
+        model_id="qwen3-max",
+        provider="qwen",
+        api_key_env="DASHSCOPE_API_KEY",
+        base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+        max_tokens=8192,
+        context_window=262_144,
+        description="通义千问3代最强，1T+参数",
         price_info="输入 ¥40/M, 输出 ¥120/M",
     ),
     "qwen-plus": ModelConfig(
@@ -191,7 +260,6 @@ MODEL_REGISTRY: Dict[str, ModelConfig] = {
         context_window=131_072,
         description="通义千问平衡版，性价比高",
         price_info="输入 ¥4/M, 输出 ¥12/M",
-        is_recommended=True,
     ),
     "qwen-turbo": ModelConfig(
         name="Qwen Turbo",
@@ -206,8 +274,31 @@ MODEL_REGISTRY: Dict[str, ModelConfig] = {
     ),
 
     # ═══════════════════════════════════════════
-    # Kimi 月之暗面
+    # Kimi 月之暗面 (来源: platform.moonshot.cn)
     # ═══════════════════════════════════════════
+    "kimi-k2.6": ModelConfig(
+        name="Kimi K2.6",
+        model_id="kimi-k2.6",
+        provider="kimi",
+        api_key_env="KIMI_API_KEY",
+        base_url="https://api.moonshot.cn/v1",
+        max_tokens=8192,
+        context_window=262_144,
+        description="Kimi最新最智能模型，多模态(文本/图片/视频输入)，支持长思考，256K上下文",
+        price_info="输入(缓存命中) ¥1.10/M, 输入(缓存未命中) ¥6.50/M, 输出 ¥27/M",
+        is_recommended=True,
+    ),
+    "kimi-k2": ModelConfig(
+        name="Kimi K2",
+        model_id="kimi-k2",
+        provider="kimi",
+        api_key_env="KIMI_API_KEY",
+        base_url="https://api.moonshot.cn/v1",
+        max_tokens=8192,
+        context_window=131_072,
+        description="超强代码和Agent能力的MoE模型",
+        price_info="按量计费",
+    ),
     "moonshot-v1-8k": ModelConfig(
         name="Kimi 8K",
         model_id="moonshot-v1-8k",
@@ -216,7 +307,7 @@ MODEL_REGISTRY: Dict[str, ModelConfig] = {
         base_url="https://api.moonshot.cn/v1",
         max_tokens=4096,
         context_window=8_192,
-        description="Kimi基础模型，适合短文本任务",
+        description="Kimi经典生成模型",
         price_info="输入 ¥12/M, 输出 ¥12/M",
     ),
     "moonshot-v1-32k": ModelConfig(
@@ -227,7 +318,7 @@ MODEL_REGISTRY: Dict[str, ModelConfig] = {
         base_url="https://api.moonshot.cn/v1",
         max_tokens=8192,
         context_window=32_768,
-        description="Kimi标准版，支持较长上下文",
+        description="Kimi标准版",
         price_info="输入 ¥24/M, 输出 ¥24/M",
     ),
     "moonshot-v1-128k": ModelConfig(
@@ -238,37 +329,71 @@ MODEL_REGISTRY: Dict[str, ModelConfig] = {
         base_url="https://api.moonshot.cn/v1",
         max_tokens=8192,
         context_window=131_072,
-        description="Kimi超长上下文版，适合长文档分析",
+        description="Kimi超长上下文版",
         price_info="输入 ¥60/M, 输出 ¥60/M",
     ),
 
     # ═══════════════════════════════════════════
-    # GLM 智谱
+    # GLM 智谱 (来源: docs.bigmodel.cn)
     # ═══════════════════════════════════════════
-    "glm-4": ModelConfig(
-        name="GLM-4",
-        model_id="glm-4",
+    "glm-5.1": ModelConfig(
+        name="GLM-5.1",
+        model_id="glm-5.1",
         provider="glm",
         api_key_env="ZHIPU_API_KEY",
         base_url="https://open.bigmodel.cn/api/paas/v4",
-        max_tokens=4096,
-        context_window=128_000,
-        description="智谱最强模型，中文能力优秀",
-        price_info="输入 ¥50/M, 输出 ¥50/M",
+        max_tokens=8192,
+        context_window=200_000,
+        description="智谱最新旗舰模型，开源SOTA，Coding对齐Claude Opus 4.6，长程任务可自主工作8小时",
+        price_info="按量计费",
+        is_recommended=True,
     ),
-    "glm-4-plus": ModelConfig(
-        name="GLM-4 Plus",
-        model_id="glm-4-plus",
+    "glm-5": ModelConfig(
+        name="GLM-5",
+        model_id="glm-5",
+        provider="glm",
+        api_key_env="ZHIPU_API_KEY",
+        base_url="https://open.bigmodel.cn/api/paas/v4",
+        max_tokens=8192,
+        context_window=200_000,
+        description="编程对齐Claude Opus 4.5，擅长Agentic长程规划与执行",
+        price_info="按量计费",
+    ),
+    "glm-5-turbo": ModelConfig(
+        name="GLM-5-Turbo",
+        model_id="glm-5-turbo",
+        provider="glm",
+        api_key_env="ZHIPU_API_KEY",
+        base_url="https://open.bigmodel.cn/api/paas/v4",
+        max_tokens=8192,
+        context_window=200_000,
+        description="复杂长任务执行连续性好",
+        price_info="按量计费",
+    ),
+    "glm-4.7": ModelConfig(
+        name="GLM-4.7",
+        model_id="glm-4.7",
+        provider="glm",
+        api_key_env="ZHIPU_API_KEY",
+        base_url="https://open.bigmodel.cn/api/paas/v4",
+        max_tokens=8192,
+        context_window=200_000,
+        description="通用对话/推理/智能体全面升级，编程更强更稳",
+        price_info="按量计费",
+    ),
+    "glm-4.7-flash": ModelConfig(
+        name="GLM-4.7-Flash",
+        model_id="glm-4.7-flash",
         provider="glm",
         api_key_env="ZHIPU_API_KEY",
         base_url="https://open.bigmodel.cn/api/paas/v4",
         max_tokens=4096,
-        context_window=128_000,
-        description="智谱增强版，平衡性能与成本",
-        price_info="输入 ¥50/M, 输出 ¥50/M",
+        context_window=200_000,
+        description="最新基座模型的普惠免费版本",
+        price_info="免费",
     ),
     "glm-4-flash": ModelConfig(
-        name="GLM-4 Flash",
+        name="GLM-4-Flash",
         model_id="glm-4-flash",
         provider="glm",
         api_key_env="ZHIPU_API_KEY",
@@ -276,13 +401,35 @@ MODEL_REGISTRY: Dict[str, ModelConfig] = {
         max_tokens=4096,
         context_window=128_000,
         description="智谱轻量版，速度快，成本低",
-        price_info="输入 ¥0/M, 输出 ¥0/M (免费)",
-        is_recommended=True,
+        price_info="免费",
     ),
 
     # ═══════════════════════════════════════════
-    # Baichuan 百川
+    # Baichuan 百川 (来源: baichuan-ai.com)
     # ═══════════════════════════════════════════
+    "baichuan4-turbo": ModelConfig(
+        name="Baichuan4-Turbo",
+        model_id="Baichuan4-Turbo",
+        provider="baichuan",
+        api_key_env="BAICHUAN_API_KEY",
+        base_url="https://api.baichuan-ai.com/v1",
+        max_tokens=4096,
+        context_window=32_768,
+        description="针对企业高频场景优化，可用性较Baichuan4提升10%+，价格仅为GPT-4o的80%",
+        price_info="按量计费",
+        is_recommended=True,
+    ),
+    "baichuan4-air": ModelConfig(
+        name="Baichuan4-Air",
+        model_id="Baichuan4-Air",
+        provider="baichuan",
+        api_key_env="BAICHUAN_API_KEY",
+        base_url="https://api.baichuan-ai.com/v1",
+        max_tokens=4096,
+        context_window=32_768,
+        description="百川首创MoE架构，大幅降低推理成本，单价仅0.98厘/千token",
+        price_info="输入 ¥0.98/千tokens",
+    ),
     "baichuan4": ModelConfig(
         name="Baichuan 4",
         model_id="Baichuan4",
@@ -291,45 +438,67 @@ MODEL_REGISTRY: Dict[str, ModelConfig] = {
         base_url="https://api.baichuan-ai.com/v1",
         max_tokens=4096,
         context_window=32_768,
-        description="百川最新模型，中文能力强",
+        description="SuperCLUE评测国内第一，具备多模态能力和Search Agent",
         price_info="输入 ¥10/M, 输出 ¥10/M",
     ),
 
     # ═══════════════════════════════════════════
-    # MiniMax
+    # MiniMax (来源: platform.minimaxi.com)
     # ═══════════════════════════════════════════
     "minimax-m2.7": ModelConfig(
         name="MiniMax M2.7",
         model_id="MiniMax-M2.7",
         provider="minimax",
         api_key_env="MINIMAX_API_KEY",
-        base_url="https://api.minimaxi.com/anthropic",
-        max_tokens=4096,
-        context_window=8_192,
-        description="MiniMax最新模型，中文能力优秀",
+        base_url="https://api.minimaxi.com/v1",
+        max_tokens=8192,
+        context_window=205_000,
+        description="MiniMax最新旗舰文本模型，开启模型自我迭代",
         price_info="按量计费",
         is_recommended=True,
     ),
-    "minimax-abab6.5s": ModelConfig(
-        name="MiniMax abab6.5s",
-        model_id="abab6.5s-chat",
+    "minimax-m2.7-highspeed": ModelConfig(
+        name="MiniMax M2.7 Highspeed",
+        model_id="MiniMax-M2.7-highspeed",
         provider="minimax",
         api_key_env="MINIMAX_API_KEY",
-        base_url="https://api.minimax.chat/v1",
-        max_tokens=4096,
-        context_window=8_192,
-        description="MiniMax标准版，稳定可靠",
+        base_url="https://api.minimaxi.com/v1",
+        max_tokens=8192,
+        context_window=205_000,
+        description="与M2.7效果不变，速度大幅提升",
         price_info="按量计费",
     ),
-    "minimax-abab6.5g": ModelConfig(
-        name="MiniMax abab6.5g",
-        model_id="abab6.5g-chat",
+    "minimax-m2.5": ModelConfig(
+        name="MiniMax M2.5",
+        model_id="MiniMax-M2.5",
         provider="minimax",
         api_key_env="MINIMAX_API_KEY",
-        base_url="https://api.minimax.chat/v1",
+        base_url="https://api.minimaxi.com/v1",
+        max_tokens=8192,
+        context_window=205_000,
+        description="顶尖性能与极致性价比，轻松驾驭复杂任务",
+        price_info="按量计费",
+    ),
+    "minimax-m2.5-highspeed": ModelConfig(
+        name="MiniMax M2.5 Highspeed",
+        model_id="MiniMax-M2.5-highspeed",
+        provider="minimax",
+        api_key_env="MINIMAX_API_KEY",
+        base_url="https://api.minimaxi.com/v1",
+        max_tokens=8192,
+        context_window=205_000,
+        description="与M2.5效果不变，速度大幅提升",
+        price_info="按量计费",
+    ),
+    "minimax-m2-her": ModelConfig(
+        name="MiniMax M2-Her",
+        model_id="M2-her",
+        provider="minimax",
+        api_key_env="MINIMAX_API_KEY",
+        base_url="https://api.minimaxi.com/v1",
         max_tokens=4096,
-        context_window=8_192,
-        description="MiniMax MoE架构，适合复杂任务",
+        context_window=32_768,
+        description="文本对话模型，专为角色扮演、多轮对话等场景设计",
         price_info="按量计费",
     ),
 }
@@ -406,12 +575,17 @@ def create_llm(
     # ── OpenAI 兼容接口 (OpenAI, DeepSeek, Qwen, Kimi, GLM, Baichuan, MiniMax OpenAI) ──
     if provider in ("openai", "deepseek", "qwen", "kimi", "glm", "baichuan"):
         from langchain_openai import ChatOpenAI
+        
+        # DeepSeek 需要禁用 thinking 模式，否则多轮对话会报 reasoning_content 错误
+        extra_body = {"thinking": {"type": "disabled"}} if provider == "deepseek" else {}
+        
         return ChatOpenAI(
             model=config.model_id,
             temperature=temperature,
             api_key=key,
             base_url=base_url,
             max_tokens=effective_max_tokens,
+            extra_body=extra_body,
             **kwargs
         )
 
@@ -427,28 +601,17 @@ def create_llm(
             **kwargs
         )
 
-    # ── MiniMax (Anthropic 兼容) ──
+    # ── MiniMax (OpenAI 兼容) ──
     elif provider == "minimax":
-        if "anthropic" in (base_url or ""):
-            from langchain_anthropic import ChatAnthropic
-            return ChatAnthropic(
-                model=config.model_id,
-                temperature=temperature,
-                api_key=key,
-                base_url=base_url,
-                max_tokens=effective_max_tokens,
-                **kwargs
-            )
-        else:
-            from langchain_openai import ChatOpenAI
-            return ChatOpenAI(
-                model=config.model_id,
-                temperature=temperature,
-                api_key=key,
-                base_url=base_url,
-                max_tokens=effective_max_tokens,
-                **kwargs
-            )
+        from langchain_openai import ChatOpenAI
+        return ChatOpenAI(
+            model=config.model_id,
+            temperature=temperature,
+            api_key=key,
+            base_url=base_url,
+            max_tokens=effective_max_tokens,
+            **kwargs
+        )
 
     else:
         raise ValueError(f"Unsupported provider: {provider}")

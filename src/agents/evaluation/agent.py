@@ -620,6 +620,10 @@ class EvaluationAgent:
 
         verifier = DataVerifier()
         result = verifier.verify(content)
+        print(f"  [DataVerifier] Score: {result.get('authenticity_score', 'N/A')}")
+        print(f"  [DataVerifier] Suspicious: {len(result.get('suspicious_data_points', []))}")
+        print(f"  [DataVerifier] Inconsistencies: {len(result.get('numerical_inconsistencies', []))}")
+        print(f"  [DataVerifier] Anomalies: {len(result.get('statistical_anomalies', []))}")
         return result.get("authenticity_score", 80.0)
 
     def _calculate_overall_score(self, dimension_scores: List[DimensionScore]) -> float:
