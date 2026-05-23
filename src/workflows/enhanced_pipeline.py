@@ -150,7 +150,6 @@ class EnhancedResearchPipeline:
 
                 elif phase == "PHASE_6_REVISION":
                     if state["iteration"] >= max_iterations:
-                        state["is_final"] = True
                         state["current_phase"] = "PHASE_7_COMPLETE"
                         continue
 
